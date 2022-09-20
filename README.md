@@ -9,7 +9,7 @@
 - mark some models props with null! to mark which reference nullable types are nullable or not
 - MailTransferService 
  - service should operate based on abstrations, DI should be smart enough to inject implementation based on configuration, SOLID - dep. inject prinicple
- - removed validation part from service ( in that place it is assumed models were validated before), 
+ - removed request validation part from service ( in that place it is assumed models were validated before), 
 	we follow SOLID - single resposiblity, validator could be invoked diffrent way (like middleware in api), thus I removed it from service,
          added dedicated class which is based on fluentvalidation 
 		 added another one which could handle it in custom way
@@ -20,19 +20,13 @@
 
 Future improvements -
 - making signature to support working with tasks (helpful later in impl to make whole process async)
-- more tests for dedicated services, also validator
+- more tests for dedicated services, also validator (now added happy path)
 - respect CQS - split data store logic to have either query or command
-
-#### Process for transferring mail
-
-- Lookup the container the mail is being transferred from.
-- Check the containers are in a valid state for the transfer to take place.
-- Reduce the container capacity on the source container and increase the destination container capacity by the same amount.
+- more validations needed since it also is based on object retrieved from container (dynamic validation)
 
 #### Restrictions
 
 - A container can only hold one type of mail.
-
 
 ### The exercise brief
 

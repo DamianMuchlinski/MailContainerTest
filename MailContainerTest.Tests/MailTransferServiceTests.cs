@@ -16,14 +16,14 @@ namespace MailContainerTest.Tests
         public MailTransferServiceTests()
         {
             containerDataStore = new Mock<IContainerDataStore>();
-
-            
         }
 
         [Fact]
         public void MakeMailTransfer_when_request_is_proper_should_transfer()
         {
             // Arrange
+            var mailType = Models.Enum.MailType.StandardLetter;
+
             var sourceMailContainerNumber = "1";
             var sourceCapacity = 30;
             
@@ -34,13 +34,14 @@ namespace MailContainerTest.Tests
 
             containerDataStore
                 .Setup(x => x.GetMailContainer(sourceMailContainerNumber))
-                .Returns(new MailContainer() {  MailContainerNumber = sourceMailContainerNumber, Capacity= sourceCapacity });
+                .Returns(new MailContainer() { AllowedMailType = Models.Enum.AllowedMailType.StandardLetter,  MailContainerNumber = sourceMailContainerNumber, Capacity= sourceCapacity });
             
             containerDataStore
                 .Setup(x => x.GetMailContainer(destMailContainerNumber))
                 .Returns(new MailContainer() { MailContainerNumber = destMailContainerNumber, Capacity = destCapacity });
 
-            var request =  new MakeMailTransferRequest { 
+            var request = new MakeMailTransferRequest {
+                MailType = mailType,
                 DestinationMailContainerNumber = destMailContainerNumber, 
                 SourceMailContainerNumber = sourceMailContainerNumber,
                 NumberOfMailItems = numberOfMailsinRequest,
@@ -52,7 +53,6 @@ namespace MailContainerTest.Tests
             var result = sut.MakeMailTransfer(request);
 
             // Assert
-
             using (new AssertionScope())
             {
                 result.Success.Should().Be(true);
