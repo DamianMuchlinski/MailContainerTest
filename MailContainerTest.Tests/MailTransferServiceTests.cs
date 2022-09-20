@@ -16,7 +16,7 @@ namespace MailContainerTest.Tests
         public MailTransferServiceTests()
         {
             containerDataStore = new Mock<IContainerDataStore>();
-            containerDataStore.Setup(x=> x.GetMailContainer(It.IsAny<string>())).Returns(new MailContainer());
+
             
         }
 
@@ -24,7 +24,28 @@ namespace MailContainerTest.Tests
         public void MakeMailTransfer_when_request_is_proper_should_transfer()
         {
             // Arrange
-            var request =  new MakeMailTransferRequest { };
+            var sourceMailContainerNumber = "1";
+            var sourceCapacity = 30;
+            
+            var destMailContainerNumber = "2";
+            var destCapacity = 0;
+
+            var numberOfMailsinRequest = 20;
+
+            containerDataStore
+                .Setup(x => x.GetMailContainer(sourceMailContainerNumber))
+                .Returns(new MailContainer() {  MailContainerNumber = sourceMailContainerNumber, Capacity= sourceCapacity });
+            
+            containerDataStore
+                .Setup(x => x.GetMailContainer(destMailContainerNumber))
+                .Returns(new MailContainer() { MailContainerNumber = destMailContainerNumber, Capacity = destCapacity });
+
+            var request =  new MakeMailTransferRequest { 
+                DestinationMailContainerNumber = destMailContainerNumber, 
+                SourceMailContainerNumber = sourceMailContainerNumber,
+                NumberOfMailItems = numberOfMailsinRequest,
+            };
+            
             var sut = new MailTransferService(containerDataStore.Object, new NullLogger<MailTransferService>());
 
             // Act
@@ -35,6 +56,14 @@ namespace MailContainerTest.Tests
             using (new AssertionScope())
             {
                 result.Success.Should().Be(true);
+
+                containerDataStore
+                    .Verify(x => x.UpdateMailContainer(
+                        It.Is<MailContainer>(x=> x.MailContainerNumber == sourceMailContainerNumber && x.Capacity == sourceCapacity - numberOfMailsinRequest)), Times.Once);
+
+                containerDataStore
+                    .Verify(x => x.UpdateMailContainer(
+                        It.Is<MailContainer>(x => x.MailContainerNumber == destMailContainerNumber && x.Capacity == destCapacity + numberOfMailsinRequest)), Times.Once);
             }
         }
     }
