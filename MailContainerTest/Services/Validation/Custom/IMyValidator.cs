@@ -1,4 +1,4 @@
-﻿namespace MailContainerTest.Abstract
+﻿namespace MailContainerTest.Services.Validation.Custom
 {
     public interface IMyValidator<T>
     {

@@ -21,14 +21,13 @@ namespace MailContainerTest.Tests
         }
 
         [Fact]
-        public async Task MakeMailTransfer_when_request_is_proper_should_transfer()
+        public void MakeMailTransfer_when_request_is_proper_should_transfer()
         {
             // Arrange
             var request =  new MakeMailTransferRequest { };
             var sut = new MailTransferService(containerDataStore.Object, new NullLogger<MailTransferService>());
 
             // Act
-            await Task.Yield();
             var result = sut.MakeMailTransfer(request);
 
             // Assert

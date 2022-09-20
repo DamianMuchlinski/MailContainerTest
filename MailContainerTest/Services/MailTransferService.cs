@@ -23,8 +23,8 @@ namespace MailContainerTest.Services
             try
             {
                 MailContainer mailContainer = containerDataStore.GetMailContainer(request.SourceMailContainerNumber);
+                
                 mailContainer.Capacity -= request.NumberOfMailItems;
-
                 containerDataStore.UpdateMailContainer(mailContainer);
 
                 return new MakeMailTransferResult { Success = true };

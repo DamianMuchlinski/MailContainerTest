@@ -1,6 +1,6 @@
-﻿using MailContainerTest.Abstract;
-using MailContainerTest.Models;
+﻿using MailContainerTest.Models;
 using MailContainerTest.Models.Enum;
+using MailContainerTest.Services.Validation.Custom;
 
 namespace MailContainerTest.Services.Validation.Fluent
 {
