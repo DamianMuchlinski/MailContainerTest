@@ -1,93 +1,39 @@
-﻿using MailContainerTest.Data;
-using MailContainerTest.Types;
-using System.Configuration;
+﻿using MailContainerTest.Abstract;
+using MailContainerTest.Models;
+using Microsoft.Extensions.Logging;
 
 namespace MailContainerTest.Services
 {
     public class MailTransferService : IMailTransferService
     {
-        public MakeMailTransferResult MakeMailTransfer(MakeMailTransferRequest request)
+        private readonly IContainerDataStore containerDataStore;
+        private readonly ILogger<MailTransferService> logger;
+
+        public MailTransferService(
+            IContainerDataStore containerDataStore,
+            ILogger<MailTransferService> logger)
         {
-            var dataStoreType = ConfigurationManager.AppSettings["DataStoreType"];
+            this.containerDataStore = containerDataStore;
+            this.logger = logger;
+        }
 
-            MailContainer mailContainer = null;
-
-            if (dataStoreType == "Backup")
+        public MakeMailTransferResult MakeMailTransfer(
+            MakeMailTransferRequest request)
+        {
+            try
             {
-                var mailContainerDataStore = new BackupMailContainerDataStore();
-                mailContainer = mailContainerDataStore.GetMailContainer(request.SourceMailContainerNumber);
-
-            } else
-            {
-                var mailContainerDataStore = new MailContainerDataStore();
-                mailContainer = mailContainerDataStore.GetMailContainer(request.SourceMailContainerNumber);
-            }
-
-            var result = new MakeMailTransferResult();
-
-            switch (request.MailType)
-            {
-                case MailType.StandardLetter:
-                    if (mailContainer == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!mailContainer.AllowedMailType.HasFlag(AllowedMailType.StandardLetter))
-                    {
-                        result.Success = false;
-                    }
-                    break;
-
-                case MailType.LargeLetter:
-                    if (mailContainer == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!mailContainer.AllowedMailType.HasFlag(AllowedMailType.LargeLetter))
-                    {
-                        result.Success = false;
-                    }
-                    else if (mailContainer.Capacity < request.NumberOfMailItems)
-                    {
-                        result.Success = false;
-                    }
-                    break;
-
-                case MailType.SmallParcel:
-                    if (mailContainer == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!mailContainer.AllowedMailType.HasFlag(AllowedMailType.SmallParcel))
-                    {
-                        result.Success = false;
-
-                    }
-                    else if (mailContainer.Status != MailContainerStatus.Operational)
-                    {
-                        result.Success = false;
-                    }
-                    break;
-            }
-
-            if (result.Success)
-            {
+                MailContainer mailContainer = containerDataStore.GetMailContainer(request.SourceMailContainerNumber);
                 mailContainer.Capacity -= request.NumberOfMailItems;
 
-                if (dataStoreType == "Backup")
-                {
-                    var mailContainerDataStore = new BackupMailContainerDataStore();
-                    mailContainerDataStore.UpdateMailContainer(mailContainer);
+                containerDataStore.UpdateMailContainer(mailContainer);
 
-                }
-                else
-                {
-                    var mailContainerDataStore = new MailContainerDataStore();
-                    mailContainerDataStore.UpdateMailContainer(mailContainer);
-                }
+                return new MakeMailTransferResult { Success = true };
             }
-
-            return result;
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Something terrible happend");
+                return new MakeMailTransferResult { Success = false };
+            }
         }
     }
 }
